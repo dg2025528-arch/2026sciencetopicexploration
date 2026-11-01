@@ -1282,8 +1282,9 @@ with tabs[5]:
 st.markdown("---")
 st.markdown(
     '<p class="small">'
-    "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션"
+    "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션")
+st.markdown(
     "*시뮬레이션과 실험 결과는 항상 같지 않습니다.*"
-    "</p>",
+    "</p>",)
     unsafe_allow_html=True,
 )
