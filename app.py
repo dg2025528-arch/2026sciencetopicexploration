@@ -568,7 +568,7 @@ with tabs[0]:
     )
     liquid = ph_color(ph, fade)
 
-st.markdown(
+    st.markdown(
         f"""
 <style>
 .beaker-card {{
@@ -786,6 +786,8 @@ st.markdown(
         """,
         unsafe_allow_html=True,
     )
+
+
 
 st.warning(
         "초기 흡광도와 속도 계수는 교육용 가정값입니다. "
