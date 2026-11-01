@@ -600,54 +600,6 @@ with tabs[0]:
         unsafe_allow_html=True,
     )
 
-    st.markdown("#### 수학적 모형 비교")
-    st.caption(
-        "아래 선택은 이 그래프에만 적용됩니다. "
-        "위의 기본 시뮬레이션과 비커는 1차 지수 감소 기준입니다."
-    )
-
-    choice = st.radio(
-        "수학적 모형",
-        ["1차 지수형", "0차 선형", "2차 역수형"],
-        horizontal=not mobile_view,
-    )
-
-    # 기존 모형별 계산식 유지
-    if choice == "1차 지수형":
-        pred = A0 * np.exp(-k * t)
-    elif choice == "0차 선형":
-        pred = np.maximum(0, A0 - A0 * k * t)
-    else:
-        pred = A0 / (1 + k * A0 * t)
-
-    legend_labels = {
-        "1차 지수형": "First-order model",
-        "0차 선형": "Zero-order model",
-        "2차 역수형": "Second-order model",
-    }
-
-    fig, ax = make_figure()
-    ax.plot(
-        t,
-        pred,
-        label=legend_labels[choice],
-        color="#2563eb",
-        linewidth=2.4,
-    )
-
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Absorbance, A")
-    ax.set_xlim(0, duration)
-    ax.set_ylim(0, A0 * 1.15)
-
-    add_legend(ax)
-    show_figure(fig)
-
-    st.caption(
-        "모형별 계수는 교육용 곡선 비교를 위한 값입니다. "
-        "서로 다른 차수의 속도상수는 단위가 달라 직접 비교할 수 없습니다."
-    )
-
     st.warning(
         "초기 흡광도와 속도 계수는 교육용 가정값입니다. "
         "실제 안토시아닌 조성, H₂O₂ 농도와 반응 경로를 반영한 "
