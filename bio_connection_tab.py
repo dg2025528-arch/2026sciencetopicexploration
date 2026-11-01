@@ -1,67 +1,130 @@
-"""Streamlit add-on: a small biology-connection tab for an anthocyanin experiment app.
-
-Usage in the existing app.py:
-    from bio_connection_tab import render_bio_connection_tab
-
-    # Add one more tab to the existing st.tabs([...]) list, named '생명과학 연결'.
-    # Then, in the new tab:
-    with tab_bio:
-        render_bio_connection_tab()
-"""
-
 import streamlit as st
 
 
-def render_bio_connection_tab() -> None:
-    """Render a concise, qualitative explanation linking the experiment to plant biology."""
+def render_bio_connection_tab():
+    """안토시아닌 실험과 식물의 산화 스트레스를 정성적으로 연결."""
 
     st.subheader("생명과학으로 연결하기")
-    st.caption("기존 안토시아닌 실험을 식물세포의 산화 스트레스와 연결해 보는 간단한 설명입니다.")
+    st.caption(
+        "안토시아닌과 H₂O₂의 반응을 식물세포의 산화 스트레스와 "
+        "연결해 살펴봅니다. 생체 내 반응을 예측하는 시뮬레이션은 아닙니다."
+    )
 
     situation = st.radio(
-        "식물의 상태를 선택해 보세요.",
+        "식물의 상태를 선택하세요.",
         ["평상시", "강한 빛·고온 등 환경 스트레스"],
-        horizontal=True,
         key="bio_connection_situation",
     )
 
-    st.markdown("#### 식물세포 안에서 생각해 보기")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.info("**① 환경 변화**\n\n강한 빛이나 고온 등은 식물세포의 산화·환원 균형에 영향을 줄 수 있습니다.")
-    with c2:
-        st.info("**② H₂O₂ 증가 가능성**\n\n과산화수소(H₂O₂)는 식물세포에서 만들어지는 ROS 중 하나이며, 신호 전달에도 관여합니다.")
-    with c3:
-        st.info("**③ 액포의 안토시아닌**\n\n안토시아닌은 주로 액포에 저장됩니다. 특정 조건에서는 과산화효소와 H₂O₂가 색소의 산화적 분해에 관여할 수 있습니다.")
+    # 모바일에서도 읽기 쉽도록 가로 카드 대신 세로로 배치
+    st.markdown("### 식물세포 안에서는 어떤 일이 일어날까?")
+
+    st.info(
+        "**① 환경 변화와 산화·환원 균형**\n\n"
+        "강한 빛이나 고온 등의 환경 변화는 식물세포의 대사와 "
+        "산화·환원 균형에 영향을 줄 수 있습니다."
+    )
+
+    st.info(
+        "**② ROS와 H₂O₂**\n\n"
+        "활성산소종(ROS)은 식물의 정상적인 대사 과정에서도 생성됩니다. "
+        "H₂O₂는 ROS 중 하나로, 신호 전달에 관여하지만 "
+        "과도하게 축적되면 세포 성분의 산화적 손상에 기여할 수 있습니다."
+    )
+
+    st.info(
+        "**③ 액포에 저장되는 안토시아닌**\n\n"
+        "안토시아닌은 주로 액포에 축적됩니다. "
+        "일부 식물과 조건에서는 과산화효소와 H₂O₂가 "
+        "안토시아닌의 산화적 분해에 관여할 수 있습니다."
+    )
+
+    st.markdown("### 선택한 상태에서 생각해 보기")
 
     if situation == "평상시":
         st.success(
-            "평상시에도 ROS는 만들어집니다. ROS는 무조건 해로운 물질이 아니라 세포 신호 전달에도 쓰이며, "
-            "식물은 ROS 생성과 제거 사이의 균형을 조절합니다."
+            "평상시에도 ROS는 생성됩니다. 식물은 여러 효소와 "
+            "항산화 물질을 통해 ROS의 생성과 제거를 조절하며, "
+            "ROS의 정상적인 신호 기능도 유지합니다."
         )
-        st.write("**핵심:** 안토시아닌을 포함한 항산화 물질은 과도한 산화 작용을 조절하는 데 기여할 가능성이 있지만, ROS의 정상적인 신호 기능도 유지되어야 합니다.")
+
+        st.markdown(
+            "**안토시아닌과의 연결**\n\n"
+            "안토시아닌은 빛의 흡수와 항산화 작용 등을 통해 "
+            "식물의 보호 기능에 기여할 수 있습니다. "
+            "다만 실제 역할은 식물의 종류, 조직, 세포 내 위치와 "
+            "환경 조건에 따라 달라집니다."
+        )
+
     else:
         st.warning(
-            "환경 스트레스가 커지면 ROS, 특히 H₂O₂의 양이 증가할 수 있습니다. 일부 식물에서는 액포의 "
-            "class III 과산화효소(peroxidase)가 H₂O₂를 이용해 안토시아닌 등 페놀성 물질의 산화를 촉진하고, "
-            "색소 분해에 관여할 수 있다는 연구가 보고되어 있습니다."
+            "환경 스트레스는 ROS 생성과 제거의 균형을 바꿀 수 있으며, "
+            "일부 조건에서는 H₂O₂가 축적될 수 있습니다. "
+            "제거 능력을 넘어서는 산화 부담은 세포 손상으로 이어질 수 있습니다."
         )
-        st.write("**핵심:** 네 실험에서 관찰한 H₂O₂에 의한 탈색을 식물세포의 색소 분해 과정과 연결해 생각해 볼 수 있습니다.")
+
+        st.markdown(
+            "**안토시아닌과의 연결**\n\n"
+            "스트레스에 대응하여 안토시아닌 축적이 증가하는 경우도 있고, "
+            "특정 조건에서는 과산화효소와 H₂O₂가 색소 분해에 "
+            "관여하는 경우도 있습니다. 따라서 "
+            "**‘스트레스 증가 → 안토시아닌 감소’가 항상 성립하지는 않습니다.**"
+        )
 
     st.markdown("---")
-    st.markdown("#### 기존 실험과 실제 식물세포의 차이")
+    st.markdown("### 이번 실험과 연결하기")
+
     st.write(
-        "이번 실험은 추출한 안토시아닌 용액에 H₂O₂를 직접 넣어 흡광도 변화를 관찰했습니다. "
-        "실제 식물세포에서는 안토시아닌이 액포에 저장되고, 세포 내 구획·과산화효소·다른 항산화 물질 등이 함께 작용합니다. "
-        "따라서 시험관에서 측정한 탈색 속도를 식물세포 안의 반응 속도로 그대로 해석할 수는 없습니다."
-    )
-    st.caption(
-        "주의: 이 탭은 문헌을 바탕으로 한 정성적 개념 설명입니다. ROS 농도, 세포 생존율 또는 생체 내 반응 속도를 계산하는 시뮬레이션은 아닙니다. "
-        "실험에서 사용한 pH 4·7·10도 식물 액포의 실제 pH를 그대로 재현한 값은 아닙니다."
+        "추출한 안토시아닌 용액에 H₂O₂를 넣고 흡광도 변화를 관찰하는 실험은, "
+        "산화 환경이 색소의 빛 흡수 특성에 영향을 줄 수 있다는 점을 "
+        "살펴보는 데 도움이 됩니다. 이를 식물세포의 산화 스트레스와 "
+        "색소 변화에 관한 질문으로 확장할 수 있습니다."
     )
 
-    st.markdown("#### 참고 문헌")
-    st.markdown(
-        "- Zhao et al. (2021), [Anthocyanin stability and degradation in plants](https://doi.org/10.1080/15592324.2021.1987767)\n"
-        "- Cerqueira et al. (2023), [Anthocyanins and reactive oxygen species: a team of rivals regulating plant development?](https://doi.org/10.1007/s11103-023-01362-4)"
+    with st.expander("시험관 실험과 식물세포는 무엇이 다를까?", expanded=True):
+        st.markdown(
+            """
+- **반응 환경:** 추출액과 달리 실제 세포에는 액포 등 여러 구획이 있습니다.
+- **효소의 작용:** 실제 세포에서는 과산화효소를 비롯한 여러 효소가 관여할 수 있습니다.
+- **항산화 체계:** 다른 항산화 물질과 ROS 제거 효소가 함께 작용합니다.
+- **합성과 분해:** 세포 안의 색소량은 분해뿐 아니라 합성·수송 등의 영향도 받습니다.
+- **측정의 의미:** 특정 파장의 흡광도 감소만으로 색소의 분해량이나 세포 손상을 확정할 수 없습니다.
+"""
+        )
+
+    st.warning(
+        "시험관에서 측정한 탈색 속도를 식물세포 안의 반응 속도로 "
+        "그대로 적용할 수 없습니다. 또한 과산화효소가 없는 추출액 실험으로 "
+        "세포 내 효소 반응 기전을 입증할 수는 없습니다."
     )
+
+    st.markdown("### 탐구를 확장하는 질문")
+
+    st.markdown(
+        """
+1. 같은 H₂O₂ 처리에서도 pH에 따라 흡광도 변화가 다른 이유는 무엇일까?
+2. 흡광도 변화만으로 안토시아닌의 분해와 화학종 변화를 구분할 수 있을까?
+3. 식물의 스트레스 반응을 확인하려면 색 변화 외에 어떤 측정이 필요할까?
+"""
+    )
+
+    st.caption(
+        "이 탭의 상태 선택은 설명만 바꾸며, 기존 시뮬레이션의 계산값에는 "
+        "영향을 주지 않습니다. ROS 농도·세포 생존율·생체 내 반응 속도를 "
+        "계산하지 않습니다. 실험의 pH 4·7·10은 식물 액포의 실제 pH를 "
+        "그대로 재현한 조건이 아닙니다."
+    )
+
+    with st.expander("참고 문헌"):
+        st.markdown(
+            """
+- Zhao et al. (2021),  
+  [Anthocyanin stability and degradation in plants](https://doi.org/10.1080/15592324.2021.1987767)
+- Cerqueira et al. (2023),  
+  [Anthocyanins and reactive oxygen species: a team of rivals regulating plant development?](https://doi.org/10.1007/s11103-023-01362-4)
+"""
+        )
+        st.caption(
+            "보고서에 인용할 때는 원문에서 저자·서지 정보와 "
+            "해당 설명의 근거를 확인하세요."
+        )
