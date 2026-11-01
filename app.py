@@ -1282,8 +1282,8 @@ with tabs[5]:
 st.markdown("---")
 st.markdown(
     '<p class="small">'
-    "Anthocyanin Lab V3 · 교육용 분석 도구<br>"
-    "가정 시뮬레이션과 실제 측정 결과를 구분하세요."
+    "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션"
+    "*시뮬레이션과 실험 결과는 항상 같지 않습니다.*"
     "</p>",
     unsafe_allow_html=True,
 )
