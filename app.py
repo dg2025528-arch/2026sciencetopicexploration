@@ -571,35 +571,224 @@ with tabs[0]:
     st.markdown(
         f"""
         <div class="liquid-display">
-            <div class="liquid-beaker"
-                 style="background:linear-gradient(
-                    to bottom,
-                    transparent 0 24%,
-                    {liquid} 24% 100%
-                 );">
-                <div style="
-                    position:absolute;
-                    top:24%;
-                    left:0;
-                    right:0;
-                    border-top:1px solid #ffffff99;">
-                </div>
+           st.markdown(
+        f"""
+<style>
+.beaker-card {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    padding: 32px 24px;
+    margin: 16px 0 20px;
+    border: 1px solid #35516d;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #10233e, #0b192e);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}}
+
+.beaker-scene {{
+    width: 210px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}}
+
+.beaker-glass {{
+    position: relative;
+    width: 160px;
+    height: 205px;
+    box-sizing: border-box;
+    border: 3px solid #b7cfe3;
+    border-top: none;
+    border-radius: 0 0 22px 22px;
+    background: rgba(220, 239, 255, 0.035);
+    box-shadow: inset 8px 0 14px rgba(255, 255, 255, 0.04);
+}}
+
+.beaker-rim {{
+    position: absolute;
+    top: -5px;
+    left: -9px;
+    right: -9px;
+    height: 8px;
+    border: 2px solid #c9dfef;
+    border-radius: 50%;
+    background: #142a43;
+    z-index: 4;
+}}
+
+.beaker-fluid {{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 74%;
+    border-radius: 0 0 18px 18px;
+    background: {liquid};
+    box-shadow: inset -12px 0 24px rgba(0, 0, 0, 0.12);
+}}
+
+.beaker-surface {{
+    position: absolute;
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 11px;
+    border-radius: 50%;
+    background: {liquid};
+    border-top: 1px solid rgba(255, 255, 255, 0.65);
+    filter: brightness(1.12);
+}}
+
+.beaker-shine {{
+    position: absolute;
+    top: 16px;
+    bottom: 18px;
+    left: 12px;
+    width: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.16);
+    z-index: 3;
+}}
+
+.beaker-mark {{
+    position: absolute;
+    right: 0;
+    width: 23px;
+    height: 1px;
+    background: rgba(235, 246, 255, 0.75);
+    z-index: 3;
+}}
+
+.beaker-platform {{
+    width: 195px;
+    height: 10px;
+    margin-top: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+}}
+
+.beaker-label {{
+    margin-top: 12px;
+    color: #c4d2e3;
+    font-size: 0.85rem;
+    text-align: center;
+}}
+
+.beaker-details {{
+    width: 100%;
+    max-width: 340px;
+    min-width: 0;
+}}
+
+.beaker-badge {{
+    display: inline-block;
+    padding: 5px 11px;
+    border: 1px solid #52708d;
+    border-radius: 20px;
+    background: #193450;
+    color: #d9edff;
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+}}
+
+.beaker-heading {{
+    margin-bottom: 16px;
+    color: #f1f5f9;
+    font-size: 1.25rem;
+    font-weight: 700;
+}}
+
+.beaker-value-row {{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #30465f;
+}}
+
+.beaker-value-label {{
+    color: #c4d2e3;
+    font-size: 0.93rem;
+}}
+
+.beaker-value {{
+    color: #f1f5f9;
+    font-size: 1.3rem;
+    font-weight: 700;
+    white-space: nowrap;
+}}
+
+.beaker-note {{
+    margin-top: 16px;
+    color: #c4d2e3;
+    font-size: 0.83rem;
+    line-height: 1.7;
+}}
+
+@media (max-width: 768px) {{
+    .beaker-card {{
+        flex-direction: column;
+        gap: 24px;
+        padding: 26px 18px;
+    }}
+
+    .beaker-details {{
+        max-width: 100%;
+    }}
+
+    .beaker-heading {{
+        text-align: center;
+    }}
+}}
+</style>
+
+<div class="beaker-card">
+    <div class="beaker-scene">
+        <div class="beaker-glass">
+            <div class="beaker-rim"></div>
+            <div class="beaker-fluid">
+                <div class="beaker-surface"></div>
             </div>
-            <div class="liquid-description">
-                <b>시점: {now} s</b>
-                <p class="small">
-                    상대 흡광도(가정값): {current_rel:.3f}
-                </p>
-                <p class="small">
-                    표시 색상은 실제 분광 데이터로 보정되지 않았습니다.
-                    색상의 밝기와 흡광도가 정량적으로 대응하지는 않습니다.
-                </p>
-            </div>
+            <div class="beaker-shine"></div>
+            <div class="beaker-mark" style="top:25%;"></div>
+            <div class="beaker-mark" style="top:45%;"></div>
+            <div class="beaker-mark" style="top:65%;"></div>
+            <div class="beaker-mark" style="top:85%;"></div>
         </div>
+        <div class="beaker-platform"></div>
+        <div class="beaker-label">안토시아닌 용액 · 개념도</div>
+    </div>
+    <div class="beaker-details">
+        <div class="beaker-badge">
+            {'H₂O₂ 처리 조건' if treated else 'H₂O₂ 미처리 조건'}
+        </div>
+        <div class="beaker-heading">시간에 따른 색 변화</div>
+        <div class="beaker-value-row">
+            <span class="beaker-value-label">관찰 시점</span>
+            <span class="beaker-value">{now} s</span>
+        </div>
+        <div class="beaker-value-row">
+            <span class="beaker-value-label">설정 pH</span>
+            <span class="beaker-value">{ph:.1f}</span>
+        </div>
+        <div class="beaker-value-row">
+            <span class="beaker-value-label">상대 흡광도 · 가정값</span>
+            <span class="beaker-value">{current_rel:.3f}</span>
+        </div>
+        <div class="beaker-note">
+            위 슬라이더를 움직여 시점별 색상을 확인하세요.<br>
+            색상은 정성적 표현이며 실제 분광 데이터로 보정되지 않았습니다.
+            비커의 액면과 눈금은 부피 측정용이 아닙니다.
+        </div>
+    </div>
+</div>
         """,
         unsafe_allow_html=True,
-    )
-
+    )    
     st.warning(
         "초기 흡광도와 속도 계수는 교육용 가정값입니다. "
         "실제 안토시아닌 조성, H₂O₂ 농도와 반응 경로를 반영한 "
