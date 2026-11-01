@@ -1287,4 +1287,3 @@ st.markdown(
     "*시뮬레이션과 실험 결과는 항상 같지 않습니다.*"
     "</p>",)
 unsafe_allow_html=True,
-)
