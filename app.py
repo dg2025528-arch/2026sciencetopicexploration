@@ -79,7 +79,34 @@ with tabs[0]:
     if choice=="1차 지수형": pred=A0*np.exp(-k*t)
     elif choice=="0차 선형": pred=np.maximum(0,A0-A0*k*t)
     else: pred=A0/(1+k*A0*t)
-    f,ax=plt.subplots(figsize=(8,2.7)); ax.plot(t,pred,label=choice); ax.set(xlabel="Time (s)",ylabel="Absorbance"); ax.grid(alpha=.25); ax.legend(); st.pyplot(f); plt.close(f)
+        # 선택 메뉴는 한글, 그래프 범례는 영어로 표시
+    legend_labels = {
+        "1차 지수형": "First-order exponential model",
+        "0차 선형": "Zero-order linear model",
+        "2차 역수형": "Second-order reciprocal model",
+    }
+
+    f, ax = plt.subplots(figsize=(8, 3.2))
+
+    ax.plot(
+        t,
+        pred,
+        label=legend_labels[choice],
+        color="#2563eb",
+        linewidth=2.4,
+    )
+
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Absorbance, A")
+    ax.set_xlim(0, duration)
+    ax.set_ylim(0, A0 * 1.15)
+
+    ax.grid(alpha=0.25)
+    ax.legend(loc="upper right", fontsize=9)
+
+    f.tight_layout()
+    st.pyplot(f)
+    plt.close(f)
     st.warning("초기 흡광도와 속도 계수는 교육용 가정값입니다. 실제 안토시아닌 조성, H₂O₂ 농도 및 반응 경로를 반영한 검증 모델이 아닙니다.")
 
 with tabs[1]:
