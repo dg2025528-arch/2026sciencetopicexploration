@@ -156,6 +156,7 @@ st.title("pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산�
 st.caption(
     "pH-dependent anthocyanin stability · "
     "H₂O₂ treatment · absorbance kinetics"
+    "made by 홍의찬, 조윤찬"
 )
 
 mobile_view = st.checkbox(
