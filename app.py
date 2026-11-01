@@ -787,7 +787,7 @@ st.markdown(
         unsafe_allow_html=True,
     )
 
-    st.warning(
+st.warning(
         "초기 흡광도와 속도 계수는 교육용 가정값입니다. "
         "실제 안토시아닌 조성, H₂O₂ 농도와 반응 경로를 반영한 "
         "검증 모델이 아닙니다."
