@@ -14,7 +14,7 @@ from bio_connection_tab import render_bio_connection_tab
 # 페이지 설정
 # =========================================================
 st.set_page_config(
-    page_title="Anthocyanin Lab V3",
+    page_title="Anthocyanin Lab",
     layout="wide",
     initial_sidebar_state="auto",
 )
