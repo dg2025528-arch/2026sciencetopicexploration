@@ -1228,7 +1228,7 @@ with tabs[5]:
     st.markdown("---")
 
     lines = [
-        "Anthocyanin Lab V3",
+        "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션",
         f"생성 시각: {datetime.now():%Y-%m-%d %H:%M}",
         "",
         "[사이드바 시뮬레이션 조건]",
