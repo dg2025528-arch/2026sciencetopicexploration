@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json, io, math
 from datetime import datetime
+from bio_connection_tab import render_bio_connection_tab
 
 st.set_page_config(page_title="Anthocyanin Lab V3",layout="wide")
 st.markdown("""
