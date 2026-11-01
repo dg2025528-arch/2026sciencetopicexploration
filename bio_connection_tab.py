@@ -139,4 +139,3 @@ def render_bio_connection_tab() -> None:
         "- Zhao et al. (2021), [Anthocyanin stability and degradation in plants](https://pubmed.ncbi.nlm.nih.gov/34686106/)\n"
         "- Sharma et al. (2021), [Abiotic stress-induced anthocyanins in plants: Their role in tolerance to abiotic stresses](https://pubmed.ncbi.nlm.nih.gov/33605458/)"
     )
-anthocyanin_bio_simulator.py 표시 중입니다.
