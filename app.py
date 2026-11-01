@@ -568,7 +568,7 @@ with tabs[0]:
     )
     liquid = ph_color(ph, fade)
 
-     st.markdown(
+st.markdown(
         f"""
 <style>
 .beaker-card {{
