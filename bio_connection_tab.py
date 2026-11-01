@@ -1,38 +1,3 @@
-새 메일이 1개 있습니다.
-
-콘텐츠로 건너뛰기
-스크린 리더로 당곡고등학교 메일 사용하기
-당곡고등학교 메일의 데스크롭 알림을 사용 설정하세요.
-   확인  나중에 하기
-
-1,000개 중 1개
-anthocyanin_bio_simulator
-External
-받은편지함
-
-조윤찬
-첨부파일
-오후 10:28 (0분 전)
-나에게
-
-이 메일은 영어로 작성된 것 같습니다
- 첨부파일 1개
-  •  Gmail에서 검사함
-anthocyanin_bio_simulator.py
-100%
-"""Streamlit add-on for connecting an anthocyanin experiment to plant biology.
-
-Usage in the existing app.py:
-    from bio_connection_tab import render_bio_connection_tab
-
-    # Add a tab to the existing st.tabs([...]) list, for example:
-    # tab_bio = ...
-    with tab_bio:
-        render_bio_connection_tab()
-
-This module is qualitative and educational. It does not calculate real ROS
-concentrations, cellular reaction rates, or plant survival.
-"""
 
 import streamlit as st
 
