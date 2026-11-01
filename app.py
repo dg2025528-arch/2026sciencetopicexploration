@@ -58,7 +58,14 @@ treated=st.sidebar.toggle("H₂O₂ 처리군",True)
 duration=st.sidebar.slider("관찰 시간 (초)",30,3600,300,30)
 st.sidebar.markdown("**온도: 25 °C (고정)**")
 st.sidebar.caption("속도상수 직접 설정 기능은 없습니다. 시뮬레이션의 가정값과 실험 데이터에서 추정한 겉보기 값은 구분합니다.")
-tabs=st.tabs(["실험 시뮬레이션","데이터 분석","조건별 비교","화학 개념","보고서·조건 저장"])
+tabs = st.tabs([
+    "실험 시뮬레이션",
+    "데이터 분석",
+    "조건별 비교",
+    "화학 개념",
+    "생명과학 연결",
+    "보고서·조건 저장",
+])
 
 with tabs[0]:
     st.subheader("화학 실험 시뮬레이션")
