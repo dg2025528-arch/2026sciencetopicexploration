@@ -160,7 +160,7 @@ st.caption(
 st.caption("made by 홍의찬, 조윤찬")
 
 mobile_view = st.checkbox(
-    "📱 모바일 보기",
+    "📱 모바일 버전",
     value=False,
     help=(
         "그래프를 세로로 넓히고 요약 지표를 세로로 표시합니다. "
