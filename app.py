@@ -185,8 +185,13 @@ with tabs[3]:
     ]
     for title,body in concepts:
         with st.expander(title): st.write(body)
-
+# 새로 추가한 생명과학 탭
 with tabs[4]:
+    render_bio_connection_tab()
+
+
+# 기존 보고서 탭은 5번으로 이동
+with tabs[5]:
     st.subheader("보고서 및 조건 저장")
     settings={"pH":ph,"buffer_volume_mL":buffer,"anthocyanin_extract_volume_mL":extract,"H2O2_treatment":treated,"observation_time_s":duration,"temperature_C":25}
     st.json(settings)
