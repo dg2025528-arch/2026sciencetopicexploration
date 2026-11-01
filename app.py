@@ -8,64 +8,7 @@ from bio_connection_tab import render_bio_connection_tab
 
 st.set_page_config(page_title="Anthocyanin Lab V3",layout="wide")
 st.markdown("""
-/* 비커와 설명 영역 */
-.liquid-display {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-}
 
-/* 모바일 최적화 */
-@media (max-width: 768px) {
-    .block-container {
-        padding: 1rem 0.8rem 2rem;
-    }
-
-    h1 {
-        font-size: 1.8rem !important;
-    }
-
-    h2 {
-        font-size: 1.4rem !important;
-    }
-
-    h3 {
-        font-size: 1.15rem !important;
-    }
-
-    /* 탭은 가로 스크롤 */
-    .stTabs [data-baseweb="tab-list"] {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        gap: 6px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        white-space: nowrap;
-        flex-shrink: 0;
-        padding: 10px 12px;
-    }
-
-    /* 비커 아래에 설명 표시 */
-    .liquid-display {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-    }
-
-    /* 다운로드·일반 버튼의 글자 줄바꿈 */
-    [data-testid="stDownloadButton"] button,
-    [data-testid="stButton"] button {
-        min-height: 44px;
-        white-space: normal;
-    }
-
-    /* 가로 배치된 라디오가 좁은 화면에서 줄바꿈 */
-    div[role="radiogroup"] {
-        flex-wrap: wrap;
-    }
-}
 <style>
 .stApp{background:linear-gradient(135deg,#071225,#0b1830 55%,#101f38);color:#e8f0fa}
 [data-testid="stSidebar"]{background:#0a162b;border-right:1px solid #294260}
