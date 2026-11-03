@@ -83,9 +83,9 @@ def _render_plant_cell_simulator() -> None:
 
     st.success(f"**핵심 해석:** {takeaway}")
 
-    with st.expander("내가 한 안토시아닌 실험과 연결하기"):
+    with st.expander("발표한 실험과 연결하기"):
         st.write(
-            "네 실험에서는 적양배추 추출물에 H₂O₂를 직접 넣고 pH 조건별 흡광도 변화를 관찰했습니다. "
+            "실험에서는 적양배추 추출물에 H₂O₂를 직접 넣고 pH 조건별 흡광도 변화를 관찰했습니다. "
             "따라서 시험관에서의 산화적 탈색 현상을 식물세포에서 ROS와 안토시아닌이 관련되는 생리 현상을 생각하는 출발점으로 활용할 수 있습니다."
         )
         st.warning(
