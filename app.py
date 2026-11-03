@@ -567,7 +567,7 @@ with tabs[0]:
     )
     liquid = ph_color(ph, fade)
 
-    st.markdown(
+        st.markdown(
         f"""
 <style>
 .beaker-card {{
@@ -577,10 +577,10 @@ with tabs[0]:
     gap: 48px;
     padding: 32px 24px;
     margin: 16px 0 20px;
-    border: 1px solid #35516d;
+    border: 1px solid #CBD5E1;
     border-radius: 20px;
-    background: linear-gradient(135deg, #10233e, #0b192e);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    background: #F8FAFC;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }}
 
 .beaker-scene {{
@@ -596,11 +596,10 @@ with tabs[0]:
     width: 160px;
     height: 205px;
     box-sizing: border-box;
-    border: 3px solid #b7cfe3;
+    border: 3px solid #64748B;
     border-top: none;
     border-radius: 0 0 22px 22px;
-    background: rgba(220, 239, 255, 0.035);
-    box-shadow: inset 8px 0 14px rgba(255, 255, 255, 0.04);
+    background: rgba(100, 116, 139, 0.06);
 }}
 
 .beaker-rim {{
@@ -609,9 +608,9 @@ with tabs[0]:
     left: -9px;
     right: -9px;
     height: 8px;
-    border: 2px solid #c9dfef;
+    border: 2px solid #64748B;
     border-radius: 50%;
-    background: #142a43;
+    background: #E2E8F0;
     z-index: 4;
 }}
 
@@ -634,7 +633,7 @@ with tabs[0]:
     height: 11px;
     border-radius: 50%;
     background: {liquid};
-    border-top: 1px solid rgba(255, 255, 255, 0.65);
+    border-top: 1px solid rgba(255, 255, 255, 0.7);
     filter: brightness(1.12);
 }}
 
@@ -645,7 +644,7 @@ with tabs[0]:
     left: 12px;
     width: 8px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.7);
     z-index: 3;
 }}
 
@@ -654,7 +653,7 @@ with tabs[0]:
     right: 0;
     width: 23px;
     height: 1px;
-    background: rgba(235, 246, 255, 0.75);
+    background: rgba(71, 85, 105, 0.7);
     z-index: 3;
 }}
 
@@ -663,14 +662,7 @@ with tabs[0]:
     height: 10px;
     margin-top: 10px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.25);
-}}
-
-.beaker-label {{
-    margin-top: 12px;
-    color: #c4d2e3;
-    font-size: 0.85rem;
-    text-align: center;
+    background: rgba(15, 23, 42, 0.15);
 }}
 
 .beaker-details {{
@@ -682,17 +674,15 @@ with tabs[0]:
 .beaker-badge {{
     display: inline-block;
     padding: 5px 11px;
-    border: 1px solid #52708d;
+    border: 1px solid #93C5FD;
     border-radius: 20px;
-    background: #193450;
-    color: #d9edff;
+    background: #DBEAFE;
     font-size: 0.82rem;
     margin-bottom: 14px;
 }}
 
 .beaker-heading {{
     margin-bottom: 16px;
-    color: #f1f5f9;
     font-size: 1.25rem;
     font-weight: 700;
 }}
@@ -703,16 +693,14 @@ with tabs[0]:
     align-items: baseline;
     gap: 12px;
     padding: 12px 0;
-    border-bottom: 1px solid #30465f;
+    border-bottom: 1px solid #E2E8F0;
 }}
 
 .beaker-value-label {{
-    color: #c4d2e3;
     font-size: 0.93rem;
 }}
 
 .beaker-value {{
-    color: #f1f5f9;
     font-size: 1.3rem;
     font-weight: 700;
     white-space: nowrap;
@@ -720,9 +708,30 @@ with tabs[0]:
 
 .beaker-note {{
     margin-top: 16px;
-    color: #c4d2e3;
     font-size: 0.83rem;
     line-height: 1.7;
+}}
+
+.beaker-label {{
+    margin-top: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+}}
+
+/* 다크 테마의 밝은 글자색을 덮어쓰기 */
+.beaker-card .beaker-heading,
+.beaker-card .beaker-value {{
+    color: #0F172A !important;
+}}
+
+.beaker-card .beaker-label,
+.beaker-card .beaker-value-label,
+.beaker-card .beaker-note {{
+    color: #475569 !important;
+}}
+
+.beaker-card .beaker-badge {{
+    color: #1E3A8A !important;
 }}
 
 @media (max-width: 768px) {{
