@@ -13,26 +13,34 @@ from bio_connection_tab import render_bio_connection_tab
 # =========================================================
 # 페이지 설정
 # =========================================================
+st.set_page_config(
+    page_title="Anthocyanin Lab",
+    layout="wide",
+    initial_sidebar_state="auto",
+)
+
 st.markdown(
     """
     <style>
     .stApp {
-        background: #FFFFFF;
-        color: #0F172A;
+        background: linear-gradient(
+            135deg, #071225, #0b1830 55%, #101f38
+        );
+        color: #e8f0fa;
     }
 
     [data-testid="stSidebar"] {
-        background: #F1F5F9;
-        border-right: 1px solid #CBD5E1;
+        background: #0a162b;
+        border-right: 1px solid #294260;
     }
 
     h1, h2, h3 {
-        color: #0F172A !important;
+        color: #f1f6ff !important;
     }
 
     div[data-testid="stMetric"] {
-        background: #F1F5F9;
-        border: 1px solid #CBD5E1;
+        background: #10233e;
+        border: 1px solid #294260;
         padding: 12px;
         border-radius: 10px;
         min-width: 0;
@@ -45,35 +53,17 @@ st.markdown(
     }
 
     .stTabs [data-baseweb="tab"] {
-        background: #F1F5F9;
-        color: #334155 !important;
+        background: #10233e;
         border-radius: 8px 8px 0 0;
         white-space: nowrap;
         flex-shrink: 0;
         padding: 10px 14px;
     }
 
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: #DBEAFE !important;
-        color: #1E3A8A !important;
-        font-weight: 700;
-    }
-
-    .small,
-    [data-testid="stCaptionContainer"] {
-        color: #475569 !important;
+    .small {
+        color: #9fb5cc;
         font-size: .88rem;
         line-height: 1.6;
-    }
-
-    [data-testid="stWidgetLabel"] p,
-    [data-testid="stMetricLabel"],
-    [data-testid="stMetricValue"] {
-        color: #0F172A !important;
-    }
-
-    [data-testid="stMarkdownContainer"] a {
-        color: #1D4ED8;
     }
 
     .liquid-display {
@@ -88,7 +78,7 @@ st.markdown(
         width: 160px;
         height: 200px;
         flex-shrink: 0;
-        border: 3px solid #64748B;
+        border: 3px solid #a9bfd4;
         border-top: 0;
         border-radius: 8px 8px 28px 28px;
         position: relative;
@@ -105,6 +95,7 @@ st.markdown(
         min-height: 44px;
     }
 
+    /* 좁은 화면에서도 라디오 선택지가 잘리지 않게 */
     div[role="radiogroup"] {
         flex-wrap: wrap;
     }
@@ -114,9 +105,17 @@ st.markdown(
             padding: 1rem 0.8rem 2rem;
         }
 
-        h1 { font-size: 1.8rem !important; }
-        h2 { font-size: 1.4rem !important; }
-        h3 { font-size: 1.15rem !important; }
+        h1 {
+            font-size: 1.8rem !important;
+        }
+
+        h2 {
+            font-size: 1.4rem !important;
+        }
+
+        h3 {
+            font-size: 1.15rem !important;
+        }
 
         .stTabs [data-baseweb="tab"] {
             padding: 10px 12px;
