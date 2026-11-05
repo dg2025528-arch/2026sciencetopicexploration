@@ -1181,7 +1181,7 @@ with tabs[5]:
 
     st.markdown("---")
 
-       lines = [
+    lines = [
         "Anthocyanin Lab V3",
         f"생성 시각: {datetime.now():%Y-%m-%d %H:%M}",
         "",
