@@ -11,11 +11,16 @@ import streamlit as st
 from bio_connection_tab import render_bio_connection_tab
 
 
+APP_TITLE = (
+    "pH 조건에 따른 안토시아닌의 분자 구조 변화와 "
+    "과산화수소에 의한 산화 반응 속도 시뮬레이션"
+)
+
 # =========================================================
 # 페이지 설정
 # =========================================================
 st.set_page_config(
-    page_title="Anthocyanin Lab V3",
+    page_title=APP_TITLE,
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -37,6 +42,11 @@ st.markdown(
 
     h1, h2, h3 {
         color: #f1f6ff !important;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+        line-height: 1.35 !important;
     }
 
     div[data-testid="stMetric"] {
@@ -100,7 +110,7 @@ st.markdown(
             padding: 1rem 0.8rem 2rem;
         }
 
-        h1 { font-size: 1.8rem !important; }
+        h1 { font-size: 1.4rem !important; }
         h2 { font-size: 1.4rem !important; }
         h3 { font-size: 1.15rem !important; }
 
@@ -128,7 +138,7 @@ st.markdown(
 # =========================================================
 # 제목 및 화면 옵션
 # =========================================================
-st.title("ANTHOCYANIN LAB")
+st.title(APP_TITLE)
 st.caption(
     "pH-dependent anthocyanin stability · "
     "H₂O₂ treatment · absorbance kinetics"
@@ -350,16 +360,20 @@ def show_metrics(items):
             column.metric(label, value)
 
 
-def plot_data(d, normalized=False, reference=False):
+def plot_data(d, normalized=False, reference=False, color_source=None):
+    """d의 조건별 곡선을 그림. color_source는 pH별 색 고정용 전체 데이터."""
     fig, ax = make_figure()
 
     y_column = "A_norm" if normalized else "absorbance"
+    source = color_source if color_source is not None else d
+    ph_values = sorted(source["pH"].unique())
     mapping = []
 
     for index, ((p, group), series) in enumerate(
         d.groupby(["pH", "group"]), start=1
     ):
         curve_id = f"G{index}"
+        color = f"C{ph_values.index(p) % 10}"
 
         ax.plot(
             series["time"],
@@ -367,6 +381,7 @@ def plot_data(d, normalized=False, reference=False):
             marker=".",
             markersize=3,
             linewidth=1.7,
+            color=color,
             label=f"{curve_id} | pH {p:g}",
         )
 
@@ -858,8 +873,26 @@ with tabs[1]:
         st.caption("휴대폰에서는 표를 좌우로 밀어 전체 열을 볼 수 있습니다.")
         st.dataframe(d, use_container_width=True, height=220)
 
+        # ----- 그래프 선택 버튼 (전체 / pH별) -----
+        ph_list = sorted(d["pH"].unique())
+        graph_options = ["전체"] + [f"pH {p:g}" for p in ph_list]
+
+        st.markdown("#### 그래프 보기 선택")
+        selected = st.radio(
+            "표시할 조건",
+            graph_options,
+            key="graph_select",
+            horizontal=True,
+        )
+
+        if selected == "전체":
+            view = d
+        else:
+            selected_ph = ph_list[graph_options.index(selected) - 1]
+            view = d[d["pH"] == selected_ph]
+
         st.markdown("#### 원래 흡광도")
-        mapping = plot_data(d)
+        mapping = plot_data(view, color_source=d)
 
         with st.expander("그래프 ID와 실험 조건"):
             st.dataframe(
@@ -867,7 +900,7 @@ with tabs[1]:
             )
 
         st.markdown("#### 정규화 흡광도")
-        plot_data(d, normalized=True)
+        plot_data(view, normalized=True, color_source=d)
 
         st.caption(
             "각 pH·group의 첫 측정값을 A₀로 사용합니다. "
@@ -876,35 +909,45 @@ with tabs[1]:
         )
 
         with st.expander("정규화란 무엇이고 왜 할까?", expanded=True):
+            st.markdown("**정규화란?**")
             st.markdown(
-                r"""
-**정규화란?**  
-각 조건의 흡광도를 **그 조건의 첫 측정값 \(A_0\)로 나누어**
-시작점을 모두 1로 맞추는 처리입니다.
+                "각 조건의 흡광도를 **그 조건의 첫 측정값 $A_0$로 나누어** "
+                "시작점을 모두 1로 맞추는 처리입니다."
+            )
+            st.latex(
+                r"A_{\mathrm{norm}}(t)=\frac{A(t)}{A_0}"
+            )
+            st.markdown(
+                "여기서 $A(t)$는 시간 $t$에서의 흡광도, "
+                "$A_0$는 처음 측정한 흡광도입니다."
+            )
 
-\[
-\frac{A}{A_0}=\frac{\text{시간 } t \text{의 흡광도}}{\text{처음 측정한 흡광도}}
-\]
+            st.markdown("**왜 할까?**")
+            st.markdown(
+                "pH가 다르면 안토시아닌의 화학종이 달라져 "
+                "**처음 흡광도부터 조건마다 다릅니다.** "
+                "원래 흡광도 그래프에서는 시작 높이가 달라서 "
+                "\"얼마나 줄었는지\"를 바로 비교하기 어렵습니다. "
+                "정규화하면 모든 곡선이 1에서 출발하므로 "
+                "**처음 대비 변화의 크기와 속도**를 같은 기준에서 "
+                "비교할 수 있습니다."
+            )
 
-**왜 할까?**  
-pH가 다르면 안토시아닌의 화학종이 달라져 **처음 흡광도부터
-조건마다 다릅니다.** 원래 흡광도 그래프에서는 시작 높이가 달라서
-"얼마나 줄었는지"를 바로 비교하기 어렵습니다. 정규화하면 모든
-곡선이 1에서 출발하므로 **처음 대비 변화의 크기와 속도**를
-같은 기준에서 비교할 수 있습니다.
+            st.markdown("**읽는 방법**")
+            st.markdown(
+                "- $A/A_0 = 1$: 처음과 같음\n"
+                "- $A/A_0 = 0.8$: 처음보다 20% 감소\n"
+                "- $A/A_0 > 1$: 처음보다 증가"
+            )
 
-**읽는 방법**
-- \(A/A_0=1\): 처음과 같음
-- \(A/A_0=0.8\): 처음보다 20% 감소
-- \(A/A_0>1\): 처음보다 증가
-
-**주의할 점**
-- 정규화는 **시작 높이의 차이만** 맞춥니다. pH에 따른 화학종과
-  몰흡광계수의 차이를 없애지는 않습니다.
-- 첫 측정값에 오차가 있으면 그 곡선 전체가 함께 영향을 받습니다.
-- 감소 비율이 같다고 실제 분해량이나 반응 속도가 같다는 뜻은
-  아닙니다.
-"""
+            st.markdown("**주의할 점**")
+            st.markdown(
+                "- 정규화는 **시작 높이의 차이만** 맞춥니다. pH에 따른 "
+                "화학종과 몰흡광계수의 차이를 없애지는 않습니다.\n"
+                "- 첫 측정값에 오차가 있으면 그 곡선 전체가 함께 "
+                "영향을 받습니다.\n"
+                "- 감소 비율이 같다고 실제 분해량이나 반응 속도가 "
+                "같다는 뜻은 아닙니다."
             )
 
         summaries = []
@@ -1182,7 +1225,7 @@ with tabs[5]:
     st.markdown("---")
 
     lines = [
-        "Anthocyanin Lab V3",
+        APP_TITLE,
         f"생성 시각: {datetime.now():%Y-%m-%d %H:%M}",
         "",
         "[사이드바 시뮬레이션 조건]",
@@ -1192,46 +1235,4 @@ with tabs[5]:
             f"관찰 시간 {duration} s, 온도 25 °C"
         ),
         "",
-        "시뮬레이션은 교육용 가정 모델이며 실제 반응을 검증한 모델이 아닙니다.",
-        "용액 부피는 표시·기록용이며 현재 흡광도 계산에 반영되지 않습니다.",
-        "흡광도 기반 속도는 겉보기 탈색 속도로 해석해야 합니다.",
-        "사이드바 조건은 업로드 CSV의 실험 조건을 대신하지 않습니다.",
-    ]
-
-    if "data" in st.session_state:
-        d = st.session_state["data"]
-        lines.extend(
-            [
-                "",
-                "[분석에 사용한 데이터]",
-                f"유효 행 수: {len(d)}",
-                f"시간 범위: {d.time.min():g}–{d.time.max():g} s",
-                "정규화 방식: 각 pH·group의 첫 흡광도를 기준으로 A/A₀ 계산",
-            ]
-        )
-
-    st.download_button(
-        "TXT 요약 보고서 다운로드",
-        "\n".join(lines).encode("utf-8-sig"),
-        file_name="anthocyanin_report.txt",
-        mime="text/plain",
-        use_container_width=True,
-    )
-
-    st.caption(
-        "요약 보고서는 TXT 파일로 제공합니다. "
-        "PDF가 필요하면 내려받은 문서를 편집기에서 열어 PDF로 저장하세요."
-    )
-
-
-# =========================================================
-# 하단 안내
-# =========================================================
-st.markdown("---")
-st.markdown(
-    '<p class="small">'
-    "Anthocyanin Lab V3 · 교육용 분석 도구<br>"
-    "가정 시뮬레이션과 실제 측정 결과를 구분하세요."
-    "</p>",
-    unsafe_allow_html=True,
-)
+        "시뮬레이션은 교육용 가정 모델이며 실제 반응을 검증한 모델이 
