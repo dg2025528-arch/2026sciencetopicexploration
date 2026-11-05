@@ -1,6 +1,7 @@
 import json
 import math
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +15,7 @@ from bio_connection_tab import render_bio_connection_tab
 # 페이지 설정
 # =========================================================
 st.set_page_config(
-    page_title="Anthocyanin Lab",
+    page_title="Anthocyanin Lab V3",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -54,40 +55,35 @@ st.markdown(
 
     .stTabs [data-baseweb="tab"] {
         background: #10233e;
+        color: #CBD5E1 !important;
         border-radius: 8px 8px 0 0;
         white-space: nowrap;
         flex-shrink: 0;
         padding: 10px 14px;
     }
 
-    .small {
-        color: #9fb5cc;
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        color: #FFFFFF !important;
+        background: #234766 !important;
+        font-weight: 700;
+    }
+
+    .small,
+    [data-testid="stCaptionContainer"] {
+        color: #C4D2E3 !important;
         font-size: .88rem;
         line-height: 1.6;
     }
 
-    .liquid-display {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        flex-wrap: wrap;
-        padding: 16px 0;
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricValue"] {
+        color: #F1F5F9 !important;
     }
 
-    .liquid-beaker {
-        width: 160px;
-        height: 200px;
-        flex-shrink: 0;
-        border: 3px solid #a9bfd4;
-        border-top: 0;
-        border-radius: 8px 8px 28px 28px;
-        position: relative;
-    }
-
-    .liquid-description {
-        flex: 1;
-        min-width: 0;
-        overflow-wrap: anywhere;
+    [data-testid="stMarkdownContainer"] a {
+        color: #8DCEFF;
+        text-decoration: underline;
     }
 
     [data-testid="stDownloadButton"] button,
@@ -95,7 +91,6 @@ st.markdown(
         min-height: 44px;
     }
 
-    /* 좁은 화면에서도 라디오 선택지가 잘리지 않게 */
     div[role="radiogroup"] {
         flex-wrap: wrap;
     }
@@ -105,32 +100,13 @@ st.markdown(
             padding: 1rem 0.8rem 2rem;
         }
 
-        h1 {
-            font-size: 1.8rem !important;
-        }
-
-        h2 {
-            font-size: 1.4rem !important;
-        }
-
-        h3 {
-            font-size: 1.15rem !important;
-        }
+        h1 { font-size: 1.8rem !important; }
+        h2 { font-size: 1.4rem !important; }
+        h3 { font-size: 1.15rem !important; }
 
         .stTabs [data-baseweb="tab"] {
             padding: 10px 12px;
             font-size: .9rem;
-        }
-
-        .liquid-display {
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .liquid-description {
-            width: 100%;
-            text-align: center;
         }
 
         [data-testid="stDownloadButton"] button,
@@ -147,19 +123,21 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
 # =========================================================
 # 제목 및 화면 옵션
 # =========================================================
-st.title("pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션")
+st.title("ANTHOCYANIN LAB")
 st.caption(
     "pH-dependent anthocyanin stability · "
     "H₂O₂ treatment · absorbance kinetics"
 )
-st.caption("made by 홍의찬, 조윤찬")
 
 mobile_view = st.checkbox(
-    "📱 모바일 버전",
+    "📱 모바일 보기",
     value=False,
+    key="mobile_view",
     help=(
         "그래프를 세로로 넓히고 요약 지표를 세로로 표시합니다. "
         "휴대폰에서는 체크하는 것을 권장합니다."
@@ -176,6 +154,18 @@ st.info(
     "분석 방법을 학습하기 위한 가정 모델입니다. "
     "실제 측정 데이터와 구분하세요."
 )
+
+
+# =========================================================
+# 내장 실험 데이터
+# =========================================================
+DATA_DIR = Path(__file__).parent / "data"
+
+BUILTIN_FILES = [
+    "pH4withH2O2_filled_v2.csv",
+    "pH7_H2O2_processed.csv",
+    "pH10withH2O2_filled.csv",
+]
 
 
 # =========================================================
@@ -214,9 +204,7 @@ def prepare(df):
 
     for column in ["time", "pH", "absorbance"]:
         d[column] = pd.to_numeric(d[column], errors="coerce")
-        d[column] = d[column].replace(
-            [np.inf, -np.inf], np.nan
-        )
+        d[column] = d[column].replace([np.inf, -np.inf], np.nan)
 
     d["group"] = d["group"].astype("string").str.strip()
     d["group"] = d["group"].replace("", pd.NA)
@@ -230,22 +218,36 @@ def prepare(df):
     if d.empty:
         raise ValueError("정리 후 유효한 데이터가 없습니다.")
 
-    d["A_norm"] = (
-        d.groupby(["pH", "group"])["absorbance"]
-        .transform(
-            lambda s: (
-                s / s.iloc[0]
-                if s.iloc[0] != 0
-                else np.nan
-            )
-        )
+    d["A_norm"] = d.groupby(["pH", "group"])["absorbance"].transform(
+        lambda s: s / s.iloc[0] if s.iloc[0] != 0 else np.nan
     )
 
     return d
 
 
+@st.cache_data
+def load_builtin():
+    """data 폴더의 실험 CSV를 읽어 하나로 합침."""
+    frames = []
+
+    for name in BUILTIN_FILES:
+        path = DATA_DIR / name
+        frames.append(pd.read_csv(path, encoding="utf-8-sig"))
+
+    raw = pd.concat(frames, ignore_index=True)
+    cleaned = prepare(raw)
+
+    quality = {
+        "original_rows": len(raw),
+        "missing_rows": int(raw.isna().any(axis=1).sum()),
+        "removed_rows": len(raw) - len(cleaned),
+    }
+
+    return cleaned, quality
+
+
 def model_fit(t, a):
-    """기존 변환 선형회귀 방식의 모형 비교."""
+    """변환 선형회귀 방식의 모형 비교."""
     t = np.asarray(t, dtype=float)
     a = np.asarray(a, dtype=float)
 
@@ -254,17 +256,9 @@ def model_fit(t, a):
 
     models = []
 
-    # 감소 제약을 적용하지 않으므로 k가 음수일 수 있음.
-    # 음수 k는 증가 추세를 의미하며 탈색 속도상수로 해석하지 않음.
     p = np.polyfit(t, a, 1)
     models.append(
-        (
-            "0차 선형",
-            np.polyval(p, t),
-            -p[0],
-            "A/s",
-            "A=b−kt",
-        )
+        ("0차 선형", np.polyval(p, t), -p[0], "A/s", "A=b−kt")
     )
 
     if np.all(a > 0):
@@ -274,13 +268,7 @@ def model_fit(t, a):
             predicted = np.exp(np.polyval(p, t))
 
         models.append(
-            (
-                "1차 지수형",
-                predicted,
-                -p[0],
-                "s⁻¹",
-                "A=B·exp(−kt)",
-            )
+            ("1차 지수형", predicted, -p[0], "s⁻¹", "A=B·exp(−kt)")
         )
 
         p = np.polyfit(t, 1 / a, 1)
@@ -306,11 +294,7 @@ def model_fit(t, a):
 
         error = a - predicted
         rmse = np.sqrt(np.mean(error ** 2))
-        r2 = (
-            1 - np.sum(error ** 2) / ss
-            if ss > 0
-            else np.nan
-        )
+        r2 = 1 - np.sum(error ** 2) / ss if ss > 0 else np.nan
 
         rows.append(
             {
@@ -327,7 +311,6 @@ def model_fit(t, a):
 
 
 def make_figure():
-    """모바일 보기에서는 그래프 높이와 글자 크기를 확대."""
     size = (5.2, 4.5) if mobile_view else (8, 3.8)
     fig, ax = plt.subplots(figsize=size)
 
@@ -343,8 +326,6 @@ def make_figure():
 
 def show_figure(fig):
     fig.tight_layout()
-
-    # 기존 requirements.txt의 Streamlit 버전과 호환
     st.pyplot(fig, use_container_width=True)
     plt.close(fig)
 
@@ -360,7 +341,6 @@ def add_legend(ax):
 
 
 def show_metrics(items):
-    """모바일 보기에서는 지표를 세로로 표시."""
     if mobile_view:
         for label, value in items:
             st.metric(label, value)
@@ -379,7 +359,6 @@ def plot_data(d, normalized=False, reference=False):
     for index, ((p, group), series) in enumerate(
         d.groupby(["pH", "group"]), start=1
     ):
-        # 한글 group 이름도 깨지지 않게 범례에는 숫자 ID 사용
         curve_id = f"G{index}"
 
         ax.plot(
@@ -392,26 +371,15 @@ def plot_data(d, normalized=False, reference=False):
         )
 
         mapping.append(
-            {
-                "그래프 ID": curve_id,
-                "pH": p,
-                "group": group,
-            }
+            {"그래프 ID": curve_id, "pH": p, "group": group}
         )
 
     if reference:
-        ax.axhline(
-            1,
-            color="gray",
-            linestyle="--",
-            linewidth=0.8,
-        )
+        ax.axhline(1, color="gray", linestyle="--", linewidth=0.8)
 
     ax.set_xlabel("Time (s)")
     ax.set_ylabel(
-        "Relative absorbance, A/A0"
-        if normalized
-        else "Absorbance, A"
+        "Relative absorbance, A/A0" if normalized else "Absorbance, A"
     )
 
     add_legend(ax)
@@ -425,42 +393,19 @@ def plot_data(d, normalized=False, reference=False):
 # =========================================================
 st.sidebar.header("실험 조건")
 
-ph = st.sidebar.slider(
-    "pH",
-    min_value=4.0,
-    max_value=10.0,
-    value=7.0,
-    step=0.1,
-)
+ph = st.sidebar.slider("pH", 4.0, 10.0, 7.0, 0.1)
 
 buffer = st.sidebar.number_input(
-    "완충용액 부피 (mL)",
-    min_value=1.0,
-    max_value=500.0,
-    value=45.0,
-    step=1.0,
+    "완충용액 부피 (mL)", 1.0, 500.0, 45.0, 1.0
 )
 
 extract = st.sidebar.number_input(
-    "안토시아닌 추출액 부피 (mL)",
-    min_value=0.1,
-    max_value=100.0,
-    value=5.0,
-    step=0.5,
+    "안토시아닌 추출액 부피 (mL)", 0.1, 100.0, 5.0, 0.5
 )
 
-treated = st.sidebar.toggle(
-    "H₂O₂ 처리군",
-    value=True,
-)
+treated = st.sidebar.toggle("H₂O₂ 처리군", value=True)
 
-duration = st.sidebar.slider(
-    "관찰 시간 (초)",
-    min_value=30,
-    max_value=3600,
-    value=300,
-    step=30,
-)
+duration = st.sidebar.slider("관찰 시간 (초)", 30, 3600, 300, 30)
 
 st.sidebar.markdown("**온도: 25 °C 고정**")
 st.sidebar.caption(
@@ -477,14 +422,7 @@ st.sidebar.caption(
 # 탭
 # =========================================================
 tabs = st.tabs(
-    [
-        "시뮬레이션",
-        "분석",
-        "비교",
-        "화학 개념",
-        "생명 과학적 응용",
-        "저장",
-    ]
+    ["시뮬레이션", "분석", "비교", "화학", "생명과학", "저장"]
 )
 
 
@@ -507,26 +445,22 @@ with tabs[0]:
         "색상은 정성적 교육용 근사 표현입니다."
     )
 
-    # 교육용 가정값: 실제 화학 반응에서 검증된 값이 아님
-    A0 = 0.65 * (
-        0.75 + 0.25 * np.exp(-((ph - 7) / 2.4) ** 2)
-    )
-    k = (0.0018 if treated else 0.00015) * (
-        1 + 0.10 * abs(ph - 7)
-    )
+    A0 = 0.65 * (0.75 + 0.25 * np.exp(-((ph - 7) / 2.4) ** 2))
+    k = (0.0018 if treated else 0.00015) * (1 + 0.10 * abs(ph - 7))
 
     t = np.linspace(0, duration, 160)
     rel = np.exp(-k * t)
     A = A0 * rel
 
-    st.markdown("#### 기본 시뮬레이션")
-    st.caption("1차 지수 감소를 가정한 곡선입니다.")
+    st.markdown("#### 가정한 지수 감소 예시")
+    st.caption(
+        "1차 지수 감소를 가정해 계산한 곡선입니다. "
+        "실측 결과가 아닙니다."
+    )
 
     fig, ax = make_figure()
 
-    treatment_label = (
-        "H2O2-treated" if treated else "Untreated control"
-    )
+    treatment_label = "H2O2-treated" if treated else "Untreated control"
 
     ax.plot(
         t,
@@ -543,7 +477,6 @@ with tabs[0]:
     add_legend(ax)
     show_figure(fig)
 
-    # 관찰 시간을 줄일 때 현재 시점이 범위를 넘지 않도록 보정
     if "view_time" not in st.session_state:
         st.session_state["view_time"] = 0
 
@@ -560,14 +493,10 @@ with tabs[0]:
     )
 
     current_rel = math.exp(-k * now)
-
-    # 기존 색상 표현 방식 유지
-    fade = (1 - current_rel) * (
-        1 if treated else 0.18
-    )
+    fade = (1 - current_rel) * (1 if treated else 0.18)
     liquid = ph_color(ph, fade)
 
-st.markdown(
+    st.markdown(
         f"""
 <style>
 .beaker-card {{
@@ -718,7 +647,6 @@ st.markdown(
     text-align: center;
 }}
 
-/* 다크 테마의 밝은 글자색을 덮어쓰기 */
 .beaker-card .beaker-heading,
 .beaker-card .beaker-value {{
     color: #0F172A !important;
@@ -795,9 +723,7 @@ st.markdown(
         unsafe_allow_html=True,
     )
 
-
-
-st.warning(
+    st.warning(
         "초기 흡광도와 속도 계수는 교육용 가정값입니다. "
         "실제 안토시아닌 조성, H₂O₂ 농도와 반응 경로를 반영한 "
         "검증 모델이 아닙니다."
@@ -810,54 +736,78 @@ st.warning(
 with tabs[1]:
     st.subheader("실험 데이터 분석")
 
-    st.write(
-        "CSV 필수 열: `time`, `pH`, `group`, `absorbance`"
-    )
-    st.caption(
-        "time은 초 단위입니다. 서로 다른 반복 실험은 group 이름을 "
-        "구분해 올리세요. 예: H2O2_rep1, H2O2_rep2"
-    )
-
-    file = st.file_uploader(
-        "측정 CSV 업로드",
-        type=["csv"],
-        key="measurement_csv",
-    )
-
-    # 파일을 지우거나 잘못된 파일로 바꿨을 때 이전 데이터가 남지 않게 함
     st.session_state.pop("data", None)
     st.session_state.pop("data_quality", None)
 
-    if file is not None:
+    source = st.radio(
+        "데이터 선택",
+        ["내 실험 데이터 (pH 4·7·10)", "CSV 직접 업로드"],
+        key="data_source",
+        horizontal=not mobile_view,
+    )
+
+    if source == "내 실험 데이터 (pH 4·7·10)":
         try:
-            raw = pd.read_csv(file)
-            required = {"time", "pH", "group", "absorbance"}
-            missing = required - set(raw.columns)
-
-            if missing:
-                st.error(
-                    "필수 열 누락: " + ", ".join(sorted(missing))
-                )
-            else:
-                cleaned = prepare(raw)
-
-                quality = {
-                    "original_rows": len(raw),
-                    "missing_rows": int(
-                        raw.isna().any(axis=1).sum()
-                    ),
-                    "removed_rows": len(raw) - len(cleaned),
-                }
-
-                st.session_state["data"] = cleaned
-                st.session_state["data_quality"] = quality
-
-                st.success(
-                    f"{len(cleaned)}개 유효 행을 불러왔습니다."
-                )
-
+            cleaned, quality = load_builtin()
+            st.session_state["data"] = cleaned
+            st.session_state["data_quality"] = quality
+            st.success(
+                f"내장 실험 데이터 {len(cleaned)}개 행을 불러왔습니다."
+            )
         except Exception as error:
-            st.error(f"CSV 읽기 오류: {error}")
+            st.error(
+                "내장 데이터를 읽을 수 없습니다. data 폴더와 "
+                f"파일 이름을 확인하세요. ({error})"
+            )
+
+        st.caption(
+            "pH 4·7·10에서 H₂O₂를 처리한 흡광도 측정 데이터입니다. "
+            "측정 간격은 3초이며, pH 4 데이터는 약 672초까지, "
+            "pH 7·10 데이터는 300초까지 기록되어 있습니다. "
+            "파일 이름에 filled가 포함된 자료는 결측값을 채운 "
+            "값이 있을 수 있으므로, 보고서에는 보정 방법을 함께 "
+            "적어야 합니다."
+        )
+
+    else:
+        st.write("CSV 필수 열: `time`, `pH`, `group`, `absorbance`")
+        st.caption(
+            "time은 초 단위입니다. 서로 다른 반복 실험은 group 이름을 "
+            "구분해 올리세요. 예: H2O2_rep1, H2O2_rep2"
+        )
+
+        file = st.file_uploader(
+            "측정 CSV 업로드",
+            type=["csv"],
+            key="measurement_csv",
+        )
+
+        if file is not None:
+            try:
+                raw = pd.read_csv(file, encoding="utf-8-sig")
+                required = {"time", "pH", "group", "absorbance"}
+                missing = required - set(raw.columns)
+
+                if missing:
+                    st.error(
+                        "필수 열 누락: " + ", ".join(sorted(missing))
+                    )
+                else:
+                    cleaned = prepare(raw)
+
+                    st.session_state["data"] = cleaned
+                    st.session_state["data_quality"] = {
+                        "original_rows": len(raw),
+                        "missing_rows": int(raw.isna().any(axis=1).sum()),
+                        "removed_rows": len(raw) - len(cleaned),
+                    }
+
+                    st.success(
+                        f"{len(cleaned)}개 유효 행을 불러왔습니다."
+                    )
+
+            except Exception as error:
+                st.error(f"CSV 읽기 오류: {error}")
 
     if "data" in st.session_state:
         d = st.session_state["data"]
@@ -881,8 +831,7 @@ with tabs[1]:
 
             duplicate_times = int(
                 d.duplicated(
-                    subset=["pH", "group", "time"],
-                    keep=False,
+                    subset=["pH", "group", "time"], keep=False
                 ).sum()
             )
 
@@ -907,24 +856,17 @@ with tabs[1]:
                 )
 
         st.caption("휴대폰에서는 표를 좌우로 밀어 전체 열을 볼 수 있습니다.")
-        st.dataframe(
-            d,
-            use_container_width=True,
-            height=220,
-        )
+        st.dataframe(d, use_container_width=True, height=220)
 
         st.markdown("#### 원래 흡광도")
         mapping = plot_data(d)
 
         with st.expander("그래프 ID와 실험 조건"):
             st.dataframe(
-                mapping,
-                use_container_width=True,
-                hide_index=True,
+                mapping, use_container_width=True, hide_index=True
             )
 
         st.markdown("#### 정규화 흡광도")
-
         plot_data(d, normalized=True)
 
         st.caption(
@@ -932,6 +874,38 @@ with tabs[1]:
             "A/A₀ = 0.8은 초기 흡광도 대비 20% 감소를 뜻합니다. "
             "초기값보다 증가하면 1을 넘을 수 있습니다."
         )
+
+        with st.expander("정규화란 무엇이고 왜 할까?", expanded=True):
+            st.markdown(
+                r"""
+**정규화란?**  
+각 조건의 흡광도를 **그 조건의 첫 측정값 \(A_0\)로 나누어**
+시작점을 모두 1로 맞추는 처리입니다.
+
+\[
+\frac{A}{A_0}=\frac{\text{시간 } t \text{의 흡광도}}{\text{처음 측정한 흡광도}}
+\]
+
+**왜 할까?**  
+pH가 다르면 안토시아닌의 화학종이 달라져 **처음 흡광도부터
+조건마다 다릅니다.** 원래 흡광도 그래프에서는 시작 높이가 달라서
+"얼마나 줄었는지"를 바로 비교하기 어렵습니다. 정규화하면 모든
+곡선이 1에서 출발하므로 **처음 대비 변화의 크기와 속도**를
+같은 기준에서 비교할 수 있습니다.
+
+**읽는 방법**
+- \(A/A_0=1\): 처음과 같음
+- \(A/A_0=0.8\): 처음보다 20% 감소
+- \(A/A_0>1\): 처음보다 증가
+
+**주의할 점**
+- 정규화는 **시작 높이의 차이만** 맞춥니다. pH에 따른 화학종과
+  몰흡광계수의 차이를 없애지는 않습니다.
+- 첫 측정값에 오차가 있으면 그 곡선 전체가 함께 영향을 받습니다.
+- 감소 비율이 같다고 실제 분해량이나 반응 속도가 같다는 뜻은
+  아닙니다.
+"""
+            )
 
         summaries = []
         fits = []
@@ -944,10 +918,7 @@ with tabs[1]:
 
             a0 = float(series["absorbance"].iloc[0])
             af = float(series["absorbance"].iloc[-1])
-            dt = float(
-                series["time"].iloc[-1]
-                - series["time"].iloc[0]
-            )
+            dt = float(series["time"].iloc[-1] - series["time"].iloc[0])
 
             summaries.append(
                 {
@@ -956,32 +927,23 @@ with tabs[1]:
                     "초기 A": a0,
                     "최종 A": af,
                     "상대 감소율(%)": (
-                        (a0 - af) / a0 * 100
-                        if a0 != 0
-                        else np.nan
+                        (a0 - af) / a0 * 100 if a0 != 0 else np.nan
                     ),
                     "평균 감소 속도(A/s)": (
-                        (a0 - af) / dt
-                        if dt > 0
-                        else np.nan
+                        (a0 - af) / dt if dt > 0 else np.nan
                     ),
                 }
             )
 
             mf = model_fit(
-                series["time"].to_numpy()
-                - series["time"].iloc[0],
+                series["time"].to_numpy() - series["time"].iloc[0],
                 series["absorbance"].to_numpy(),
             )
 
             if not mf.empty:
-                best = (
-                    mf.sort_values(
-                        ["RMSE", "R²"],
-                        ascending=[True, False],
-                    )
-                    .iloc[0]
-                )
+                best = mf.sort_values(
+                    ["RMSE", "R²"], ascending=[True, False]
+                ).iloc[0]
 
                 fits.append(
                     {
@@ -997,22 +959,20 @@ with tabs[1]:
 
         st.markdown("#### 조건별 요약")
         st.dataframe(
-            pd.DataFrame(summaries).round(6),
-            use_container_width=True,
+            pd.DataFrame(summaries).round(6), use_container_width=True
         )
 
         if fits:
             st.markdown("#### 모형 비교 결과")
             st.dataframe(
-                pd.DataFrame(fits).round(6),
-                use_container_width=True,
+                pd.DataFrame(fits).round(6), use_container_width=True
             )
             st.caption(
-                "기존 변환 선형회귀 방식으로 적합합니다. "
-                "0차는 A, 1차는 ln(A), 2차는 1/A를 회귀하며 "
-                "RMSE는 원래 흡광도 척도에서 계산합니다. "
-                "음수 k는 해당 모형에서 증가 추세를 뜻하므로 "
-                "탈색 속도상수로 해석하지 않습니다."
+                "변환 선형회귀 방식으로 적합합니다. 0차는 A, 1차는 ln(A), "
+                "2차는 1/A를 회귀하며 RMSE는 원래 흡광도 척도에서 "
+                "계산합니다. 음수 k는 해당 모형에서 증가 추세를 뜻하므로 "
+                "탈색 속도상수로 해석하지 않습니다. 감소 후 증가하는 "
+                "곡선은 세 모형 모두 잘 설명하지 못할 수 있습니다."
             )
 
         st.caption(
@@ -1039,10 +999,7 @@ with tabs[1]:
             )
 
     else:
-        st.info(
-            "CSV를 업로드하면 데이터 품질 검사, 원본·정규화 그래프와 "
-            "속도 분석이 표시됩니다."
-        )
+        st.info("데이터를 불러오면 분석 결과가 표시됩니다.")
 
 
 # =========================================================
@@ -1054,20 +1011,14 @@ with tabs[2]:
     if "data" in st.session_state:
         d = st.session_state["data"]
 
-        mapping = plot_data(
-            d,
-            normalized=True,
-            reference=True,
-        )
+        mapping = plot_data(d, normalized=True, reference=True)
 
         with st.expander("그래프 ID와 실험 조건"):
             st.dataframe(
-                mapping,
-                use_container_width=True,
-                hide_index=True,
+                mapping, use_container_width=True, hide_index=True
             )
     else:
-        st.info("분석 탭에서 CSV를 먼저 업로드하세요.")
+        st.info("분석 탭에서 데이터를 먼저 불러오세요.")
 
     st.markdown(
         """
@@ -1205,11 +1156,7 @@ with tabs[5]:
 
     st.download_button(
         "실험 조건 JSON 저장",
-        json.dumps(
-            settings,
-            ensure_ascii=False,
-            indent=2,
-        ).encode("utf-8"),
+        json.dumps(settings, ensure_ascii=False, indent=2).encode("utf-8"),
         file_name="anthocyanin_conditions.json",
         mime="application/json",
         use_container_width=True,
@@ -1235,14 +1182,11 @@ with tabs[5]:
     st.markdown("---")
 
     lines = [
-        "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션",
+        "Anthocyanin Lab V3",
         f"생성 시각: {datetime.now():%Y-%m-%d %H:%M}",
         "",
         "[사이드바 시뮬레이션 조건]",
-        (
-            f"pH {ph:g}, 완충용액 {buffer:g} mL, "
-            f"추출액 {extract:g} mL"
-        ),
+        f"pH {ph:g}, 완충용액 {buffer:g} mL, 추출액 {extract:g} mL",
         (
             f"H₂O₂ 처리: {'처리군' if treated else '미처리 조건'}, "
             f"관찰 시간 {duration} s, 온도 25 °C"
@@ -1250,45 +1194,4 @@ with tabs[5]:
         "",
         "시뮬레이션은 교육용 가정 모델이며 실제 반응을 검증한 모델이 아닙니다.",
         "용액 부피는 표시·기록용이며 현재 흡광도 계산에 반영되지 않습니다.",
-        "흡광도 기반 속도는 겉보기 탈색 속도로 해석해야 합니다.",
-        "사이드바 조건은 업로드 CSV의 실험 조건을 대신하지 않습니다.",
-    ]
-
-    if "data" in st.session_state:
-        d = st.session_state["data"]
-        lines.extend(
-            [
-                "",
-                "[업로드 데이터]",
-                f"유효 행 수: {len(d)}",
-                (
-                    f"시간 범위: {d.time.min():g}"
-                    f"–{d.time.max():g} s"
-                ),
-                "정규화 방식: 각 pH·group의 첫 흡광도를 기준으로 A/A₀ 계산",
-            ]
-        )
-
-    st.download_button(
-        "TXT 요약 보고서 다운로드",
-        "\n".join(lines).encode("utf-8-sig"),
-        file_name="anthocyanin_report.txt",
-        mime="text/plain",
-        use_container_width=True,
-    )
-
-    st.caption(
-        "요약 보고서는 TXT 파일로 제공합니다. "
-        "PDF가 필요하면 내려받은 문서를 편집기에서 열어 PDF로 저장하세요."
-    )
-
-
-# =========================================================
-# 하단 안내
-# =========================================================
-st.markdown("---")
-st.markdown(
-    "pH 조건에 따른 안토시아닌의 분자 구조 변화와 과산화수소에 의한 산화 반응 속도 시뮬레이션")
-st.markdown(
-    "시뮬레이션과 실험 결과는 항상 같지 않습니다.")
-unsafe_allow_html=True,
+        "흡광도 기반 속도는 겉보기 
