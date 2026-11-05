@@ -1224,8 +1224,8 @@ with tabs[5]:
 
     st.markdown("---")
 
-    lines = [
-        APP_TITLE,
+     lines = [
+        "Anthocyanin Lab V3",
         f"생성 시각: {datetime.now():%Y-%m-%d %H:%M}",
         "",
         "[사이드바 시뮬레이션 조건]",
@@ -1235,4 +1235,45 @@ with tabs[5]:
             f"관찰 시간 {duration} s, 온도 25 °C"
         ),
         "",
-        "시뮬레이션은 교육용 가정 모델이며 실제 반응을 검증한 모델이 
+        "시뮬레이션은 교육용 가정 모델이며 실제 반응을 검증한 모델이 아닙니다.",
+        "용액 부피는 표시·기록용이며 현재 흡광도 계산에 반영되지 않습니다.",
+        "흡광도 기반 속도는 겉보기 탈색 속도로 해석해야 합니다.",
+        "사이드바 조건은 업로드 CSV의 실험 조건을 대신하지 않습니다.",
+    ]
+
+    if "data" in st.session_state:
+        d = st.session_state["data"]
+        lines.extend(
+            [
+                "",
+                "[분석에 사용한 데이터]",
+                f"유효 행 수: {len(d)}",
+                f"시간 범위: {d.time.min():g}–{d.time.max():g} s",
+                "정규화 방식: 각 pH·group의 첫 흡광도를 기준으로 A/A₀ 계산",
+            ]
+        )
+
+    st.download_button(
+        "TXT 요약 보고서 다운로드",
+        "\n".join(lines).encode("utf-8-sig"),
+        file_name="anthocyanin_report.txt",
+        mime="text/plain",
+        use_container_width=True,
+    )
+
+    st.caption(
+        "요약 보고서는 TXT 파일로 제공합니다. "
+        "PDF가 필요하면 내려받은 문서를 편집기에서 열어 PDF로 저장하세요."
+    )
+
+
+# =========================================================
+# 하단 안내
+# =========================================================
+st.markdown("---")
+st.markdown(
+    '<p class="small">'
+    "가정 시뮬레이션과 실제 측정 결과를 구분하세요."
+    "</p>",
+    unsafe_allow_html=True,
+)
