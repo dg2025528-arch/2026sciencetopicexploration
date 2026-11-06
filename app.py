@@ -3,7 +3,8 @@ import math
 from datetime import datetime
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.colors import qualitative
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -320,34 +321,64 @@ def model_fit(t, a):
     return pd.DataFrame(rows)
 
 
+# =========================================================
+# 그래프 함수 — Plotly
+# =========================================================
 def make_figure():
-    size = (5.2, 4.5) if mobile_view else (8, 3.8)
-    fig, ax = plt.subplots(figsize=size)
+    fig = go.Figure()
 
-    font_size = 12 if mobile_view else 11
-    ax.tick_params(labelsize=font_size)
-    ax.xaxis.label.set_size(font_size)
-    ax.yaxis.label.set_size(font_size)
-    ax.grid(alpha=0.25)
-    ax.set_axisbelow(True)
+    fig.update_layout(
+        template="plotly_white",
+        height=430 if mobile_view else 450,
+        margin=dict(l=20, r=20, t=45, b=25),
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        font=dict(
+            color="#0F172A",
+            size=12 if mobile_view else 14,
+        ),
+        hovermode="x unified",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0,
+        ),
+    )
 
-    return fig, ax
+    fig.update_xaxes(
+        title_text="Time (s)",
+        gridcolor="#E2E8F0",
+        zeroline=False,
+        automargin=True,
+    )
+
+    fig.update_yaxes(
+        gridcolor="#E2E8F0",
+        zeroline=False,
+        automargin=True,
+    )
+
+    return fig
 
 
-def show_figure(fig):
-    fig.tight_layout()
-    st.pyplot(fig, use_container_width=True)
-    plt.close(fig)
-
-
-def add_legend(ax):
-    handles, _ = ax.get_legend_handles_labels()
-    if handles:
-        ax.legend(
-            fontsize=9,
-            loc="best",
-            ncol=1 if mobile_view else 2,
-        )
+def show_figure(fig, key):
+    st.plotly_chart(
+        fig,
+        key=key,
+        use_container_width=True,
+        theme=None,
+        config={
+            "displaylogo": False,
+            "scrollZoom": False,
+            "toImageButtonOptions": {
+                "format": "png",
+                "filename": key,
+                "scale": 2,
+            },
+        },
+    )
 
 
 def show_metrics(items):
@@ -360,29 +391,71 @@ def show_metrics(items):
             column.metric(label, value)
 
 
-def plot_data(d, normalized=False, reference=False, color_source=None):
-    """d의 조건별 곡선을 그림. color_source는 pH별 색 고정용 전체 데이터."""
-    fig, ax = make_figure()
+def plot_data(
+    d,
+    normalized=False,
+    reference=False,
+    color_source=None,
+    key="data_graph",
+):
+    """조건별 곡선을 Plotly로 표시."""
+    fig = make_figure()
 
     y_column = "A_norm" if normalized else "absorbance"
     source = color_source if color_source is not None else d
     ph_values = sorted(source["pH"].unique())
+
+    # Matplotlib 기본 색상과 유사한 팔레트
+    palette = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+    ]
+
+    colors = {
+        p: palette[i % len(palette)]
+        for i, p in enumerate(ph_values)
+    }
+
     mapping = []
 
     for index, ((p, group), series) in enumerate(
-        d.groupby(["pH", "group"]), start=1
+        d.groupby(["pH", "group"]),
+        start=1,
     ):
         curve_id = f"G{index}"
-        color = f"C{ph_values.index(p) % 10}"
 
-        ax.plot(
-            series["time"],
-            series[y_column],
-            marker=".",
-            markersize=3,
-            linewidth=1.7,
-            color=color,
-            label=f"{curve_id} | pH {p:g}",
+        fig.add_trace(
+            go.Scatter(
+                x=series["time"].tolist(),
+                y=series[y_column].tolist(),
+                mode="lines+markers",
+                name=f"{curve_id} | pH {p:g}",
+                line=dict(
+                    color=colors[p],
+                    width=2,
+                ),
+                marker=dict(size=4),
+                connectgaps=False,
+                customdata=[str(group)] * len(series),
+                hovertemplate=(
+                    "시간: %{x:g} s<br>"
+                    + (
+                        "정규화 흡광도: %{y:.4f}<br>"
+                        if normalized
+                        else "흡광도: %{y:.4f}<br>"
+                    )
+                    + "group: %{customdata}"
+                    + "<extra>%{fullData.name}</extra>"
+                ),
+            )
         )
 
         mapping.append(
@@ -390,15 +463,22 @@ def plot_data(d, normalized=False, reference=False, color_source=None):
         )
 
     if reference:
-        ax.axhline(1, color="gray", linestyle="--", linewidth=0.8)
+        fig.add_hline(
+            y=1,
+            line_color="gray",
+            line_dash="dash",
+            line_width=1,
+        )
 
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel(
-        "Relative absorbance, A/A0" if normalized else "Absorbance, A"
+    fig.update_yaxes(
+        title_text=(
+            "Relative absorbance, A/A0"
+            if normalized
+            else "Absorbance, A"
+        )
     )
 
-    add_legend(ax)
-    show_figure(fig)
+    show_figure(fig, key=key)
 
     return pd.DataFrame(mapping)
 
@@ -473,24 +553,36 @@ with tabs[0]:
         "실측 결과가 아닙니다."
     )
 
-    fig, ax = make_figure()
+    # Plotly 시뮬레이션 그래프
+    fig = make_figure()
 
     treatment_label = "H2O2-treated" if treated else "Untreated control"
 
-    ax.plot(
-        t,
-        A,
-        linewidth=2.4,
-        color="#2563eb",
-        label=f"pH {ph:.1f} | {treatment_label}",
+    fig.add_trace(
+        go.Scatter(
+            x=t.tolist(),
+            y=A.tolist(),
+            mode="lines",
+            name=f"pH {ph:.1f} | {treatment_label}",
+            line=dict(
+                color="#2563eb",
+                width=3,
+            ),
+            hovertemplate=(
+                "시간: %{x:.1f} s<br>"
+                "가정한 흡광도: %{y:.4f}"
+                "<extra>%{fullData.name}</extra>"
+            ),
+        )
     )
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Absorbance, A")
-    ax.set_xlim(0, duration)
-    ax.set_ylim(0, A0 * 1.15)
 
-    add_legend(ax)
-    show_figure(fig)
+    fig.update_xaxes(range=[0, duration])
+    fig.update_yaxes(
+        title_text="Absorbance, A",
+        range=[0, float(A0 * 1.15)],
+    )
+
+    show_figure(fig, key="simulation_graph")
 
     if "view_time" not in st.session_state:
         st.session_state["view_time"] = 0
@@ -756,7 +848,7 @@ with tabs[1]:
 
     source = st.radio(
         "데이터 선택",
-        ["실험 데이터 (pH 4·7·10)", "CSV 직접 업로드"],
+        ["내 실험 데이터 (pH 4·7·10)", "CSV 직접 업로드"],
         key="data_source",
         horizontal=not mobile_view,
     )
@@ -892,7 +984,11 @@ with tabs[1]:
             view = d[d["pH"] == selected_ph]
 
         st.markdown("#### 원래 흡광도")
-        mapping = plot_data(view, color_source=d)
+        mapping = plot_data(
+            view,
+            color_source=d,
+            key="analysis_absorbance",
+        )
 
         with st.expander("그래프 ID와 실험 조건"):
             st.dataframe(
@@ -900,7 +996,12 @@ with tabs[1]:
             )
 
         st.markdown("#### 정규화 흡광도")
-        plot_data(view, normalized=True, color_source=d)
+        plot_data(
+            view,
+            normalized=True,
+            color_source=d,
+            key="analysis_normalized",
+        )
 
         st.caption(
             "각 pH·group의 첫 측정값을 A₀로 사용합니다. "
@@ -1054,7 +1155,12 @@ with tabs[2]:
     if "data" in st.session_state:
         d = st.session_state["data"]
 
-        mapping = plot_data(d, normalized=True, reference=True)
+        mapping = plot_data(
+            d,
+            normalized=True,
+            reference=True,
+            key="comparison_normalized",
+        )
 
         with st.expander("그래프 ID와 실험 조건"):
             st.dataframe(
