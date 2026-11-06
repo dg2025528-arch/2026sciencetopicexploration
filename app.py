@@ -756,7 +756,7 @@ with tabs[1]:
 
     source = st.radio(
         "데이터 선택",
-        ["내 실험 데이터 (pH 4·7·10)", "CSV 직접 업로드"],
+        ["실험 데이터 (pH 4·7·10)", "CSV 직접 업로드"],
         key="data_source",
         horizontal=not mobile_view,
     )
